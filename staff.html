@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Canteen — Staff & Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #F4F6F8; margin: 0; padding: 24px; color: #1A1A1A; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .panel h2 { font-size: 16px; margin-top: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
+  select { padding: 4px; border-radius: 6px; border: 1px solid #ddd; }
+  input[type=number] { width: 60px; padding: 4px; border-radius: 6px; border: 1px solid #ddd; }
+  .genie-box { grid-column: 1 / -1; }
+  .genie-input { display: flex; gap: 8px; margin-bottom: 12px; }
+  .genie-input input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+  .genie-input button { background: #1D4ED8; color: white; border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
+  .genie-answer { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px; font-size: 14px; margin-bottom: 8px; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chip { background: #F1F5F9; border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  .status-badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .Placed { background: #FEF3C7; color: #92400E; }
+  .Cooking { background: #DBEAFE; color: #1E40AF; }
+  .Ready { background: #D1FAE5; color: #065F46; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>👨‍🍳 Smart Canteen — Staff & Admin Console</h1>
+
+  <div class="grid">
+    <div class="panel genie-box">
+      <h2>💬 Ask Genie</h2>
+      <div class="suggestions">
+        <div class="chip" onclick="ask('How many masala dosas should we prepare tomorrow?')">Dosas tomorrow?</div>
+        <div class="chip" onclick="ask('Which item has the highest wastage?')">Highest wastage?</div>
+        <div class="chip" onclick="ask('What is the busiest lunch hour?')">Busiest hour?</div>
+        <div class="chip" onclick="ask('Which items are most popular on Friday?')">Popular on Friday?</div>
+      </div>
+      <div class="genie-input">
+        <input id="genieQ" placeholder="Ask a question about demand, wastage, or sales..." />
+        <button onclick="ask()">Ask</button>
+      </div>
+      <div id="genieAnswer"></div>
+    </div>
+
+    <div class="panel">
+      <h2>📦 Live Orders</h2>
+      <table id="ordersTable">
+        <thead><tr><th>Item</th><th>Student</th><th>Qty</th><th>Slot</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>📊 Inventory</h2>
+      <table id="inventoryTable">
+        <thead><tr><th>Item</th><th>Stock</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+async function loadOrders() {
+  const res = await fetch(API + '/api/orders');
+  const orders = await res.json();
+  const tbody = document.querySelector('#ordersTable tbody');
+  tbody.innerHTML = '';
+  orders.forEach(o => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${o.item_name}</td>
+      <td>${o.student_name}</td>
+      <td>${o.quantity}</td>
+      <td>${o.slot}</td>
+      <td>
+        <select onchange="updateStatus(${o.id}, this.value)">
+          ${['Placed','Cooking','Ready'].map(s => `<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function updateStatus(id, status) {
+  await fetch(API + `/api/orders/${id}/status`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+  loadOrders();
+}
+
+async function loadInventory() {
+  const res = await fetch(API + '/api/items');
+  const items = await res.json();
+  const tbody = document.querySelector('#inventoryTable tbody');
+  tbody.innerHTML = '';
+  items.forEach(it => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td><input type="number" value="${it.stock}" id="stock-${it.id}" /></td>
+      <td><button onclick="updateStock(${it.id})">Save</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function updateStock(id) {
+  const stock = parseInt(document.getElementById('stock-' + id).value, 10);
+  await fetch(API + `/api/items/${id}/stock`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ stock })
+  });
+  loadInventory();
+}
+
+async function ask(preset) {
+  const input = document.getElementById('genieQ');
+  const question = preset || input.value.trim();
+  if (!question) return;
+  input.value = question;
+  const res = await fetch(API + '/api/genie', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ question })
+  });
+  const data = await res.json();
+  document.getElementById('genieAnswer').innerHTML =
+    `<div class="genie-answer"><strong>Q: ${data.question}</strong><br/>${data.answer}</div>`;
+}
+
+loadOrders();
+loadInventory();
+setInterval(loadOrders, 5000); // live refresh for demo
+</script>
+</body>
+</html>

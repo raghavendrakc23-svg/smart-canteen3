@@ -1,0 +1,25 @@
+﻿# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# SQLite Database & temporary WAL/SHM files
+canteen.db
+canteen.db-shm
+canteen.db-wal
+*.db-shm
+*.db-wal
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

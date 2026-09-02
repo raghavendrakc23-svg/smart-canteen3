@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Canteen — Staff &amp; Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-dark:  #1a2e2a;
+    --teal-btn:   #2d7a6e;
+    --teal-light: #3aa896;
+    --text-main:  #0f1a18;
+    --text-muted: #5a7570;
+    --bg-page:    #f0f4f3;
+    --border:     #e0eae8;
+    --radius:     14px;
+  }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg-page); color: var(--text-main); min-height: 100vh; }
+
+  /* ===== NAV ===== */
+  nav {
+    background: var(--teal-dark);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 64px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-icon { width: 40px; height: 40px; background: var(--teal-btn); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #fff; letter-spacing: -0.5px; }
+  .logo-text { display: flex; flex-direction: column; }
+  .logo-title { color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.05em; }
+  .logo-sub   { color: #8bb8b0; font-size: 10px; letter-spacing: 0.12em; }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links a { color: #b0cec9; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
+  .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-user  { color: #b0cec9; font-size: 13px; }
+  .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.2); color: #b0cec9; border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+  .btn-logout:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+  /* ===== LOGIN SCREEN ===== */
+  #loginScreen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 64px); background: var(--bg-page); }
+  .login-card { background: #fff; border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 380px; box-shadow: 0 8px 40px rgba(26,46,42,0.12); border: 1px solid var(--border); }
+  .login-badge { display: inline-block; background: #f0f4f3; color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; margin-bottom: 14px; }
+  .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 24px; color: var(--text-main); }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-main); margin-bottom: 18px; outline: none; transition: border-color 0.15s; background: #fafcfb; }
+  .form-input:focus { border-color: var(--teal-btn); }
+  .btn-signin { width: 100%; padding: 13px; background: var(--teal-dark); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn-signin:hover { background: var(--teal-btn); }
+  .login-error { color: #dc2626; font-size: 13px; margin-bottom: 12px; display: none; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; }
+
+  /* ===== DASHBOARD ===== */
+  #dashboard { display: none; }
+  .portal-badge-bar { padding: 12px 40px; background: #fff; border-bottom: 1px solid var(--border); }
+  .portal-badge { display: inline-block; background: #f0f4f3; color: var(--text-muted); padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .page-title { font-size: 30px; font-weight: 800; margin-bottom: 24px; }
+
+  /* ===== KPI STATS ===== */
+  .kpi-bar { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .kpi-box { background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 20px 28px; flex: 1; min-width: 160px; }
+  .kpi-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .kpi-value { font-size: 36px; font-weight: 800; color: var(--text-main); line-height: 1; }
+
+  /* ===== TWO-COLUMN GRID ===== */
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 780px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .panel { background: #fff; border-radius: 16px; padding: 20px; border: 1.5px solid var(--border); }
+  .panel-title { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; }
+
+  /* ===== LIVE ORDERS ===== */
+  .order-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .order-card:last-child { margin-bottom: 0; }
+  .order-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .order-id { font-size: 14px; font-weight: 700; }
+  .order-time { font-size: 12px; color: var(--text-muted); }
+  .order-detail { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+  .order-card-bottom { display: flex; justify-content: flex-end; }
+  .status-select {
+    padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border);
+    font-size: 13px; font-weight: 600; background: #fafcfb; color: var(--text-main); cursor: pointer;
+    outline: none; transition: border-color 0.15s;
+  }
+  .status-select:focus { border-color: var(--teal-btn); }
+
+  /* ===== INVENTORY ===== */
+  .inv-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .inv-row:last-child { border-bottom: none; }
+  .inv-name { font-size: 14px; font-weight: 600; }
+  .inv-amount { font-size: 13px; color: var(--text-muted); }
+  .inv-badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .badge-healthy   { background: #d1fae5; color: #065f46; }
+  .badge-low-stock { background: #fef3c7; color: #92400e; }
+  .badge-critical  { background: #fef2f2; color: #dc2626; }
+
+  /* ===== BOTTOM ROW: PREP RECOMMEND + WASTAGE ===== */
+  .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 780px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+  /* Preparation recommendation */
+  .prep-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .prep-row:last-child { border-bottom: none; }
+  .prep-name { font-size: 14px; font-weight: 600; }
+  .prep-qty  { font-size: 15px; font-weight: 800; color: var(--text-main); }
+
+  /* Wastage form */
+  .wastage-field-label { font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 6px; display: block; }
+  .wastage-input, .wastage-select {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 14px; color: var(--text-main); background: #fafcfb;
+    outline: none; transition: border-color 0.15s; margin-bottom: 14px;
+  }
+  .wastage-input:focus, .wastage-select:focus { border-color: var(--teal-btn); }
+  .wastage-textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 14px; color: var(--text-main); background: #fafcfb;
+    outline: none; transition: border-color 0.15s; margin-bottom: 14px;
+    resize: vertical; min-height: 72px; font-family: inherit;
+  }
+  .wastage-textarea:focus { border-color: var(--teal-btn); }
+  .btn-record-waste {
+    width: 100%; padding: 13px; background: var(--teal-btn); color: #fff;
+    border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-record-waste:hover { background: #26695e; transform: translateY(-1px); }
+
+  /* ===== GENIE Q&A PANEL ===== */
+  .genie-panel { background: #fff; border-radius: 16px; padding: 20px; border: 1.5px solid var(--border); margin-top: 24px; }
+  .genie-panel-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .genie-textarea {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 14px; color: var(--text-main); background: #fafcfb;
+    outline: none; transition: border-color 0.15s; margin-bottom: 12px;
+    resize: none; min-height: 60px; font-family: inherit;
+  }
+  .genie-textarea:focus { border-color: var(--teal-btn); }
+  .btn-ask-genie {
+    padding: 11px 24px; background: var(--teal-dark); color: #fff;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s; margin-bottom: 16px;
+  }
+  .btn-ask-genie:hover { background: var(--teal-btn); }
+  .genie-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .genie-chip { background: #f0f4f3; border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-weight: 500; color: var(--text-muted); transition: background 0.15s; }
+  .genie-chip:hover { background: var(--border); color: var(--text-main); }
+  .genie-answer { margin-top: 4px; }
+  .genie-qa-block { background: #f8faf9; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); }
+  .genie-qa-q { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .genie-qa-a { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    nav { padding: 0 16px; }
+    .portal-badge-bar { padding: 10px 16px; }
+    .wrap { padding: 20px 16px; }
+    .kpi-bar { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="logo-icon">SC</div>
+    <div class="logo-text">
+      <div class="logo-title">SMART CANTEEN</div>
+      <div class="logo-sub">AURIX NEXUS</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/">Overview</a>
+    <a href="/student.html">Student</a>
+    <a href="/staff.html" class="active">Staff</a>
+    <a href="/admin.html">Admin</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-badge">STAFF &amp; ADMIN</div>
+    <h2>Staff login</h2>
+    <div class="login-error" id="loginError"></div>
+    <label class="form-label">Username</label>
+    <input id="loginUser" class="form-input" placeholder="e.g. staff" autocomplete="username" />
+    <label class="form-label">Password</label>
+    <input id="loginPass" class="form-input" type="password" placeholder="••••••••" autocomplete="current-password" />
+    <button class="btn-signin" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
+  <div class="portal-badge-bar">
+    <span class="portal-badge">STAFF DASHBOARD</span>
+  </div>
+
+  <div class="wrap">
+    <div class="page-title">Live operations</div>
+
+    <!-- KPI Stats -->
+    <div class="kpi-bar">
+      <div class="kpi-box">
+        <div class="kpi-label">Incoming orders</div>
+        <div class="kpi-value" id="kpiIncoming">—</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Low-stock alerts</div>
+        <div class="kpi-value" id="kpiLowStock">—</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Predicted total</div>
+        <div class="kpi-value" id="kpiPredicted">—</div>
+      </div>
+    </div>
+
+    <!-- Live Orders + Inventory -->
+    <div class="main-grid">
+      <!-- Live Orders -->
+      <div class="panel">
+        <div class="panel-title">Live Orders</div>
+        <div id="liveOrdersList"><p style="color:var(--text-muted);font-size:14px;padding:8px 0">Loading orders…</p></div>
+      </div>
+
+      <!-- Inventory -->
+      <div class="panel">
+        <div class="panel-title">Inventory</div>
+        <div id="inventoryList"><p style="color:var(--text-muted);font-size:14px;padding:8px 0">Loading inventory…</p></div>
+      </div>
+    </div>
+
+    <!-- Preparation Recommendation + Wastage Entry -->
+    <div class="bottom-grid">
+      <!-- Today's Preparation Recommendation -->
+      <div class="panel">
+        <div class="panel-title">Today's preparation recommendation</div>
+        <div id="prepList"><p style="color:var(--text-muted);font-size:14px">Loading…</p></div>
+      </div>
+
+      <!-- Wastage Entry -->
+      <div class="panel">
+        <div class="panel-title">Wastage entry</div>
+        <label class="wastage-field-label">ITEM</label>
+        <select id="wastageItem" class="wastage-select"></select>
+        <label class="wastage-field-label">QUANTITY</label>
+        <input id="wastageQty" type="number" class="wastage-input" min="1" value="1" placeholder="e.g. 3.5" step="0.5" />
+        <label class="wastage-field-label">REASON (OPTIONAL)</label>
+        <textarea id="wastageReason" class="wastage-textarea" placeholder="e.g. Leftover rice due to order drop"></textarea>
+        <button class="btn-record-waste" onclick="logWastage()">Record waste</button>
+      </div>
+    </div>
+
+    <!-- Genie Q&A -->
+    <div class="genie-panel">
+      <div class="genie-panel-title">Genie Q&amp;A</div>
+      <div class="genie-chips">
+        <span class="genie-chip" onclick="fillGenie('How many masala dosas should we prepare tomorrow?')">Dosas tomorrow?</span>
+        <span class="genie-chip" onclick="fillGenie('Which item has the highest wastage?')">Highest wastage?</span>
+        <span class="genie-chip" onclick="fillGenie('What is the busiest lunch hour?')">Busiest hour?</span>
+        <span class="genie-chip" onclick="fillGenie('Which items are most popular on Friday?')">Popular on Friday?</span>
+      </div>
+      <textarea id="genieQ" class="genie-textarea" placeholder="How many masala dosas should we prepare tomorrow?"></textarea>
+      <button class="btn-ask-genie" onclick="askGenie()">Ask Genie</button>
+      <div class="genie-answer" id="genieAnswer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token       = localStorage.getItem('sc_token') || '';
+let currentUser = JSON.parse(localStorage.getItem('sc_user') || 'null');
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
+
+/* ============================================================ AUTH */
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl    = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!username || !password) { showLoginError('Enter username and password'); return; }
+
+  const res  = await fetch(API + '/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await res.json();
+  if (!res.ok) { showLoginError(data.error || 'Login failed'); return; }
+
+  token       = data.token;
+  currentUser = data.user;
+  localStorage.setItem('sc_token', token);
+  localStorage.setItem('sc_user', JSON.stringify(currentUser));
+  showDashboard();
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function logout() {
+  token = ''; currentUser = null;
+  localStorage.removeItem('sc_token');
+  localStorage.removeItem('sc_user');
+  document.getElementById('dashboard').style.display   = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('navUser').textContent = '';
+}
+
+function showDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display   = 'block';
+  document.getElementById('navUser').textContent = `👤 ${currentUser.username} (${currentUser.role})`;
+  loadOrders();
+  loadInventory();
+}
+
+if (token && currentUser) showDashboard();
+
+/* ============================================================ ORDERS */
+async function loadOrders() {
+  const res = await fetch(API + '/api/orders', { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  const orders = await res.json();
+
+  // KPIs
+  const incoming  = orders.filter(o => o.status === 'Placed' || o.status === 'Cooking').length;
+  const predicted = orders.reduce((s, o) => s + o.quantity, 0) * 3 + 200;
+  document.getElementById('kpiIncoming').textContent  = incoming;
+  document.getElementById('kpiPredicted').textContent = predicted;
+
+  // Live orders list
+  const el = document.getElementById('liveOrdersList');
+  if (!orders.length) {
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:14px;padding:8px 0">No orders yet.</p>';
+    return;
+  }
+
+  const active = orders.filter(o => o.status !== 'Completed').slice(0, 8);
+  el.innerHTML = active.map(o => {
+    const t = new Date(o.created_at);
+    const timeStr = isNaN(t) ? '' : t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `
+      <div class="order-card">
+        <div class="order-card-top">
+          <span class="order-id">SC${String(o.id).padStart(4, '0')}</span>
+          <span class="order-time">${timeStr}</span>
+        </div>
+        <div class="order-detail">${o.student_name} · ${o.item_name} ×${o.quantity}</div>
+        <div class="order-card-bottom">
+          <select class="status-select" onchange="updateStatus(${o.id}, this.value)">
+            ${['Placed','Cooking','Ready','Completed'].map(s =>
+              `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updateStatus(id, status) {
+  await fetch(API + `/api/orders/${id}/status`, {
+    method: 'PATCH', headers: authHeaders(),
+    body: JSON.stringify({ status })
+  });
+  loadOrders();
+}
+
+/* ============================================================ INVENTORY */
+async function loadInventory() {
+  const res   = await fetch(API + '/api/items');
+  const items = await res.json();
+
+  // Low-stock KPI
+  const LOW_THRESHOLD = 20;
+  const lowCount = items.filter(it => it.stock < LOW_THRESHOLD).length;
+  document.getElementById('kpiLowStock').textContent = lowCount;
+
+  // Inventory list
+  const invEl = document.getElementById('inventoryList');
+  invEl.innerHTML = items.map(it => {
+    const badgeClass = it.stock === 0 ? 'badge-critical' : it.stock < LOW_THRESHOLD ? 'badge-low-stock' : 'badge-healthy';
+    const badgeText  = it.stock === 0 ? 'Out of stock' : it.stock < LOW_THRESHOLD ? 'Low stock' : 'Healthy';
+    return `
+      <div class="inv-row">
+        <div>
+          <div class="inv-name">${it.name}</div>
+          <div class="inv-amount">${it.stock} kg</div>
+        </div>
+        <span class="inv-badge ${badgeClass}">${badgeText}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Prep recommendation
+  const prepEl = document.getElementById('prepList');
+  const sorted = [...items].sort((a, b) => b.stock - a.stock);
+  prepEl.innerHTML = sorted.map(it => {
+    const rec = Math.max(20, Math.round(it.stock * 0.8));
+    return `
+      <div class="prep-row">
+        <span class="prep-name">${it.name}</span>
+        <span class="prep-qty">${rec}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Populate wastage select
+  const sel = document.getElementById('wastageItem');
+  sel.innerHTML = items.map(it => `<option value="${it.id}">${it.name}</option>`).join('');
+}
+
+/* ============================================================ WASTAGE */
+async function logWastage() {
+  const item_id        = document.getElementById('wastageItem').value;
+  const quantity_wasted = parseFloat(document.getElementById('wastageQty').value);
+  if (!item_id || !quantity_wasted || quantity_wasted <= 0) return;
+
+  const res = await fetch(API + '/api/wastage', {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ item_id, quantity_wasted: Math.round(quantity_wasted) })
+  });
+  if (res.ok) {
+    document.getElementById('wastageQty').value    = 1;
+    document.getElementById('wastageReason').value = '';
+    // Brief visual feedback
+    const btn = document.querySelector('.btn-record-waste');
+    const orig = btn.textContent;
+    btn.textContent = '✅ Recorded!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }
+}
+
+/* ============================================================ GENIE */
+function fillGenie(q) {
+  document.getElementById('genieQ').value = q;
+}
+
+async function askGenie() {
+  const question = document.getElementById('genieQ').value.trim();
+  if (!question) return;
+
+  const btn = document.querySelector('.btn-ask-genie');
+  btn.textContent = 'Thinking…';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(API + '/api/genie', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    document.getElementById('genieAnswer').innerHTML = `
+      <div class="genie-qa-block">
+        <div class="genie-qa-q">Question: ${data.question}</div>
+        <div class="genie-qa-a">Genie response: ${data.answer}</div>
+      </div>
+    `;
+  } catch(_) {
+    document.getElementById('genieAnswer').innerHTML =
+      '<p style="color:#dc2626;font-size:14px">Could not reach Genie — is the server running?</p>';
+  }
+
+  btn.textContent = 'Ask Genie';
+  btn.disabled = false;
+}
+
+/* ============================================================ REFRESH */
+setInterval(() => { if (token) { loadOrders(); loadInventory(); } }, 5000);
+
+/* ============================================================ KEY HANDLERS */
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

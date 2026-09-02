@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Canteen — Student</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #F4F6F8; margin: 0; padding: 24px; color: #1A1A1A; }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #666; font-size: 14px; margin-bottom: 20px; }
+  .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+  .item-name { font-weight: 600; }
+  .item-meta { font-size: 13px; color: #777; margin-top: 2px; }
+  button { background: #1D4ED8; color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; }
+  .modal { background: white; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; }
+  .modal input, .modal select { width: 100%; padding: 10px; margin: 6px 0 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+  .status-banner { background: #ECFDF5; border: 1px solid #10B981; color: #065F46; padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🍽️ Smart Canteen</h1>
+  <div class="sub">Today's Menu — pre-order and pick your slot</div>
+
+  <div class="status-banner" id="statusBanner"></div>
+
+  <div id="menu"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalItemName"></h3>
+    <label>Your Name</label>
+    <input id="studentName" placeholder="e.g. Punya" />
+    <label>Quantity</label>
+    <input id="qty" type="number" value="1" min="1" />
+    <label>Pickup Slot</label>
+    <select id="slot">
+      <option>12:00 PM</option>
+      <option>12:30 PM</option>
+      <option>1:00 PM</option>
+      <option>1:30 PM</option>
+      <option>2:00 PM</option>
+    </select>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button style="background:#999" onclick="closeModal()">Cancel</button>
+      <button onclick="placeOrder()">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let selectedItem = null;
+
+async function loadMenu() {
+  const res = await fetch(API + '/api/items');
+  const items = await res.json();
+  const menu = document.getElementById('menu');
+  menu.innerHTML = '';
+  items.forEach(it => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div>
+        <div class="item-name">${it.name}</div>
+        <div class="item-meta">₹${it.price} · ${it.stock} left · ${it.category}</div>
+      </div>
+      <button ${it.stock <= 0 ? 'disabled' : ''} onclick='openModal(${JSON.stringify(it)})'>
+        ${it.stock <= 0 ? 'Sold Out' : 'Order'}
+      </button>
+    `;
+    menu.appendChild(card);
+  });
+}
+
+function openModal(item) {
+  selectedItem = item;
+  document.getElementById('modalItemName').textContent = item.name;
+  document.getElementById('modalBg').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('modalBg').style.display = 'none';
+}
+
+async function placeOrder() {
+  const student_name = document.getElementById('studentName').value.trim();
+  const quantity = parseInt(document.getElementById('qty').value, 10);
+  const slot = document.getElementById('slot').value;
+  if (!student_name || !quantity) { alert('Enter your name and quantity'); return; }
+
+  const res = await fetch(API + '/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ student_name, item_id: selectedItem.id, quantity, slot })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    const banner = document.getElementById('statusBanner');
+    banner.style.display = 'block';
+    banner.textContent = `✅ Order #${data.order_id} placed for ${selectedItem.name} — pickup at ${slot}. Status: ${data.status}`;
+    closeModal();
+    loadMenu();
+  } else {
+    alert(data.error || 'Order failed');
+  }
+}
+
+loadMenu();
+</script>
+</body>
+</html>

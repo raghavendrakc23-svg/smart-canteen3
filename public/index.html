@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Canteen — AI-Powered Campus Food Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-dark:  #1a2e2a;
+    --teal-mid:   #1e3d37;
+    --teal-btn:   #2d7a6e;
+    --teal-light: #3aa896;
+    --teal-glow:  #4ecdc4;
+    --text-main:  #0f1a18;
+    --text-muted: #5a7570;
+    --bg-page:    #f0f4f3;
+    --bg-card:    #ffffff;
+    --border:     #e0eae8;
+    --radius:     14px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    background: var(--bg-page);
+    color: var(--text-main);
+    min-height: 100vh;
+  }
+
+  /* ===== NAVBAR ===== */
+  nav {
+    background: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--teal-btn);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .logo-text { display: flex; flex-direction: column; }
+  .logo-title { color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.05em; }
+  .logo-sub   { color: #8bb8b0; font-size: 10px; letter-spacing: 0.12em; }
+  .nav-links {
+    display: flex;
+    gap: 8px;
+  }
+  .nav-links a {
+    color: #b0cec9;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    background: linear-gradient(135deg, #f0f4f3 0%, #e8f5f2 100%);
+    padding: 80px 40px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    min-height: calc(100vh - 64px);
+  }
+  .hero-left { flex: 1; min-width: 300px; max-width: 520px; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(45,122,110,0.12);
+    color: var(--teal-btn);
+    border: 1px solid rgba(45,122,110,0.25);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  .hero-headline {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+  }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 32px;
+    max-width: 440px;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 36px; }
+  .btn-primary {
+    background: var(--teal-dark);
+    color: #fff;
+    border: none;
+    padding: 13px 26px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--teal-btn); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--teal-dark);
+    border: 2px solid var(--teal-dark);
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-outline:hover { background: var(--teal-dark); color: #fff; transform: translateY(-1px); }
+  .hero-features { display: flex; flex-direction: column; gap: 10px; }
+  .feature-item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--text-muted);
+  }
+  .feature-item::before {
+    content: '✓';
+    width: 20px; height: 20px;
+    background: var(--teal-btn);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  /* ===== CAMPUS PULSE CARD ===== */
+  .hero-right { flex: 1; min-width: 280px; max-width: 420px; }
+  .pulse-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 40px rgba(26,46,42,0.14);
+    border: 1px solid var(--border);
+  }
+  .pulse-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .pulse-title { font-weight: 700; font-size: 16px; }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: #16a34a;
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .pulse-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: #f8faf9;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #edf2f0;
+  }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--text-main); line-height: 1; }
+  .stat-unit  { font-size: 14px; font-weight: 600; color: var(--text-muted); }
+
+  /* Bar Chart */
+  .chart-area { margin-top: 4px; }
+  .chart-label { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 80px;
+  }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--teal-light) 0%, var(--teal-btn) 100%);
+    transition: height 0.6s ease;
+    min-height: 4px;
+  }
+  .bar-day { font-size: 10px; color: var(--text-muted); text-align: center; }
+
+  /* ===== CORE FLOW SECTION ===== */
+  .section {
+    padding: 80px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-badge {
+    display: inline-block;
+    background: rgba(45,122,110,0.1);
+    color: var(--teal-btn);
+    border: 1px solid rgba(45,122,110,0.2);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 40px;
+    letter-spacing: -0.5px;
+  }
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .flow-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(26,46,42,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .flow-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(26,46,42,0.12); }
+  .flow-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: #f0f4f3;
+    border-radius: 6px;
+    padding: 3px 8px;
+    display: inline-block;
+    margin-bottom: 14px;
+    letter-spacing: 0.05em;
+  }
+  .flow-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .flow-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ===== ACCESS PORTAL / LOGIN ===== */
+  .login-section {
+    background: linear-gradient(135deg, #f0f4f3 0%, #e8f5f2 100%);
+    padding: 80px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 40px rgba(26,46,42,0.12);
+    border: 1px solid var(--border);
+  }
+  .login-badge {
+    display: inline-block;
+    background: #f0f4f3;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+  }
+  .login-card h2 { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: var(--text-main); }
+  .role-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .role-tab {
+    flex: 1;
+    padding: 9px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: #f8faf9;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .role-tab.active {
+    background: var(--teal-dark);
+    color: #fff;
+    border-color: var(--teal-dark);
+  }
+  .role-tab:not(.active):hover {
+    background: #edf2f0;
+    color: var(--text-main);
+  }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
+  .form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-main);
+    margin-bottom: 18px;
+    transition: border-color 0.15s;
+    background: #fafcfb;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--teal-btn); background: #fff; }
+  .btn-signin {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal-dark);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-bottom: 20px;
+  }
+  .btn-signin:hover { background: var(--teal-btn); transform: translateY(-1px); }
+  .btn-signin:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+  .demo-creds {
+    background: #f8faf9;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+  }
+  .demo-creds-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .demo-cred-row {
+    display: flex; gap: 8px; margin-bottom: 4px; align-items: center;
+    font-size: 12px; color: #4a6560;
+  }
+  .demo-cred-row:last-child { margin-bottom: 0; }
+  .cred-role { font-weight: 700; min-width: 55px; }
+  .login-error {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--teal-dark);
+    color: #8bb8b0;
+    text-align: center;
+    padding: 24px;
+    font-size: 13px;
+  }
+  footer span { color: var(--teal-glow); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 40px 20px; gap: 40px; }
+    .section { padding: 50px 20px; }
+    .login-section { padding: 50px 20px; }
+    .nav-links a { font-size: 13px; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ NAVBAR -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="logo-icon">SC</div>
+    <div class="logo-text">
+      <div class="logo-title">SMART CANTEEN</div>
+      <div class="logo-sub">AURIX NEXUS</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#" class="active">Overview</a>
+    <a href="#login" id="navStudent">Student</a>
+    <a href="/staff.html">Staff</a>
+    <a href="/admin.html" id="navAdmin">Admin</a>
+  </div>
+</nav>
+
+<!-- ============================================================ HERO -->
+<section class="hero" id="overview">
+  <div class="hero-left">
+    <div class="hero-badge">AI-POWERED CAMPUS FOOD INTELLIGENCE</div>
+    <h1 class="hero-headline">Smarter meals,<br>faster pickups,<br>less waste.</h1>
+    <p class="hero-sub">
+      Smart Canteen connects students, canteen staff, and college admins
+      using live ordering, inventory intelligence, and predictive planning.
+    </p>
+    <div class="hero-btns">
+      <a href="#login" class="btn-primary" id="heroStudentBtn">Student Portal</a>
+      <a href="staff.html" class="btn-outline">Staff Dashboard</a>
+    </div>
+    <div class="hero-features">
+      <div class="feature-item">AI-powered demand forecasting</div>
+      <div class="feature-item">Live order tracking for students</div>
+      <div class="feature-item">Inventory-aware food preparation</div>
+      <div class="feature-item">Databricks-powered insights</div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="pulse-card">
+      <div class="pulse-header">
+        <span class="pulse-title">Campus Pulse</span>
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          Live
+        </div>
+      </div>
+      <div class="pulse-stats">
+        <div class="stat-box">
+          <div class="stat-label">Orders Today</div>
+          <div class="stat-value" id="statOrders">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Avg. Wait Time</div>
+          <div class="stat-value" id="statWait">—<span class="stat-unit"> min</span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Food Saved</div>
+          <div class="stat-value" id="statSaved">—<span class="stat-unit">%</span></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Live Pickup</div>
+          <div class="stat-value" id="statPickup">—</div>
+        </div>
+      </div>
+      <div class="chart-area">
+        <div class="chart-label">Weekly Order Volume</div>
+        <div class="bars" id="chartBars">
+          <div class="bar-wrap"><div class="bar" style="height:55%"></div><div class="bar-day">Mon</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:72%"></div><div class="bar-day">Tue</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:60%"></div><div class="bar-day">Wed</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:85%"></div><div class="bar-day">Thu</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:78%"></div><div class="bar-day">Fri</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:90%"></div><div class="bar-day">Sat</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:65%"></div><div class="bar-day">Sun</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ CORE FLOW -->
+<div style="background: #fff; padding: 2px 0;">
+<div class="section" id="core-flow">
+  <div class="section-badge">CORE FLOW</div>
+  <h2 class="section-title">From order to insight</h2>
+  <div class="flow-grid">
+    <div class="flow-card">
+      <div class="flow-num">01</div>
+      <h3>Student orders</h3>
+      <p>Pre-book meals, select pickup time, and get a wait estimate.</p>
+    </div>
+    <div class="flow-card">
+      <div class="flow-num">02</div>
+      <h3>Kitchen intake</h3>
+      <p>Orders feed into inventory, sales, and preparation planning data.</p>
+    </div>
+    <div class="flow-card">
+      <div class="flow-num">03</div>
+      <h3>AI forecasting</h3>
+      <p>Databricks processes demand patterns and recommends quantities.</p>
+    </div>
+    <div class="flow-card">
+      <div class="flow-num">04</div>
+      <h3>Ready pickup</h3>
+      <p>Students receive a ready notification when their food is prepared.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ ACCESS PORTAL / LOGIN -->
+<section class="login-section" id="login">
+  <div class="login-card">
+    <div class="login-badge">ACCESS PORTAL</div>
+    <h2>Smart Canteen login</h2>
+    <div class="role-tabs">
+      <div class="role-tab active" data-role="student" onclick="setRole('student')">Student</div>
+      <div class="role-tab"        data-role="staff"   onclick="setRole('staff')">Staff</div>
+      <div class="role-tab"        data-role="admin"   onclick="setRole('admin')">Admin</div>
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <label class="form-label">Email</label>
+    <input id="loginUser" class="form-input" type="text" placeholder="student@smartcanteen.local" autocomplete="username" />
+
+    <label class="form-label">Password</label>
+    <input id="loginPass" class="form-input" type="password" placeholder="••••••••••••••" autocomplete="current-password" />
+
+    <button class="btn-signin" id="signinBtn" onclick="doLogin()">Sign in as Student</button>
+
+    <div class="demo-creds">
+      <div class="demo-creds-title">DEMO CREDENTIALS</div>
+      <div class="demo-cred-row"><span class="cred-role">Student</span><span>student@smartcanteen.local &nbsp;·&nbsp; student123</span></div>
+      <div class="demo-cred-row"><span class="cred-role">Staff</span><span>staff@smartcanteen.local &nbsp;·&nbsp; staff123</span></div>
+      <div class="demo-cred-row"><span class="cred-role">Admin</span><span>admin@smartcanteen.local &nbsp;·&nbsp; admin123</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FOOTER -->
+<footer>
+  &copy; 2025 <span>Smart Canteen</span> · Aurix Nexus · AI-Powered Campus Food Intelligence
+</footer>
+
+<script>
+/* =========================================================== ROLE TABS */
+let currentRole = 'student';
+
+function setRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.role-tab[data-role="${role}"]`).classList.add('active');
+
+  const btn = document.getElementById('signinBtn');
+  const cap = role.charAt(0).toUpperCase() + role.slice(1);
+  btn.textContent = `Sign in as ${cap}`;
+
+  // Pre-fill demo credentials
+  const user = document.getElementById('loginUser');
+  const pass = document.getElementById('loginPass');
+  if (role === 'student') {
+    user.value = 'student@smartcanteen.local';
+    user.placeholder = 'student@smartcanteen.local';
+    pass.value = '';
+    pass.placeholder = '••••••••••••••';
+  } else if (role === 'staff') {
+    user.value = 'staff@smartcanteen.local';
+    user.placeholder = 'staff@smartcanteen.local';
+    pass.value = '';
+    pass.placeholder = '••••••••••••••';
+  } else {
+    user.value = 'admin@smartcanteen.local';
+    user.placeholder = 'admin@smartcanteen.local';
+    pass.value = '';
+    pass.placeholder = '••••••••••••••';
+  }
+
+  document.getElementById('loginError').style.display = 'none';
+}
+
+// Nav shortcuts
+document.getElementById('navStudent').addEventListener('click', () => setRole('student'));
+document.getElementById('heroStudentBtn').addEventListener('click', () => setRole('student'));
+
+/* =========================================================== LOGIN */
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    showErr('Please enter your username and password.');
+    return;
+  }
+
+  const btn = document.getElementById('signinBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showErr(data.error || 'Login failed. Check your credentials.');
+      btn.disabled = false;
+      btn.textContent = `Sign in as ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}`;
+      return;
+    }
+
+    // Store auth
+    localStorage.setItem('sc_token', data.token);
+    localStorage.setItem('sc_user', JSON.stringify(data.user));
+
+    // Redirect based on role
+    const role = data.user.role;
+    if (role === 'admin') {
+      window.location.href = '/admin.html';
+    } else if (role === 'staff') {
+      window.location.href = '/staff.html';
+    } else {
+      window.location.href = '/student.html';
+    }
+  } catch (e) {
+    showErr('Network error. Is the server running?');
+    btn.disabled = false;
+    btn.textContent = `Sign in as ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}`;
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// Enter key
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+/* =========================================================== CAMPUS PULSE */
+async function loadPulse() {
+  try {
+    // Fetch items to compute "live pickup" (items with stock < 10 = high demand)
+    const itemsRes = await fetch('/api/items');
+    const items = await itemsRes.json();
+
+    // Simulated pulse data (API doesn't expose today-only counts publicly)
+    // Use items data to compute meaningful live values
+    const totalStock = items.reduce((s, i) => s + i.stock, 0);
+    const avgStock = Math.round(totalStock / items.length);
+    const livePickup = items.filter(i => i.stock < avgStock).length * 3;
+    const foodSaved = Math.min(Math.round((1 - totalStock / (items.length * 50)) * 100), 35);
+
+    // Today's orders — we can't call /api/orders without auth, so use a realistic estimate
+    const ordersToday = 80 + Math.floor(Math.random() * 80);
+    const waitMin     = 5 + Math.floor(Math.random() * 5);
+
+    animateNum('statOrders', ordersToday);
+    animateNum('statWait', waitMin, ' min');
+    animateNum('statSaved', Math.max(foodSaved, 12), '%');
+    animateNum('statPickup', livePickup || 18);
+
+    // Animate chart bars with slight randomness
+    const days = [55, 72, 60, 85, 95, 90, 65];
+    document.querySelectorAll('#chartBars .bar').forEach((bar, i) => {
+      bar.style.height = (days[i] + Math.floor(Math.random() * 8 - 4)) + '%';
+    });
+  } catch (e) {
+    // Server offline — show placeholder values
+    document.getElementById('statOrders').textContent = '128';
+    document.getElementById('statWait').innerHTML   = '7<span class="stat-unit"> min</span>';
+    document.getElementById('statSaved').innerHTML  = '18<span class="stat-unit">%</span>';
+    document.getElementById('statPickup').textContent = '24';
+  }
+}
+
+function animateNum(id, target, suffix = '') {
+  const el = document.getElementById(id);
+  let current = 0;
+  const step = Math.ceil(target / 30);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.innerHTML = current + (suffix ? `<span class="stat-unit">${suffix}</span>` : '');
+    if (current >= target) clearInterval(timer);
+  }, 30);
+}
+
+loadPulse();
+setInterval(loadPulse, 15000);
+</script>
+</body>
+</html>
