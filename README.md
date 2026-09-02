@@ -76,4 +76,28 @@ The server will run on **http://localhost:3000**.
 
 ---
 
+## 🌐 Deployment Guide (e.g. Render / Railway)
+
+Because this app uses an Express backend and SQLite (`node:sqlite`), it should be deployed as a **Web Service** (not static-only hosting).
+
+### Deploying to [Render.com](https://render.com) (Recommended & Free):
+
+1. Push your repository to **GitHub**.
+2. Go to [Render Dashboard](https://dashboard.render.com/) and click **New +** &rarr; **Web Service**.
+3. Select **Build and deploy from a Git repository** and connect your `smart-canteen` GitHub repo.
+4. Configure service settings:
+   - **Name**: `smart-canteen`
+   - **Environment**: `Node`
+   - **Region**: Nearest to your users
+   - **Branch**: `main`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+5. In **Environment Variables**, add:
+   - `JWT_SECRET`: `your_random_secure_secret_string`
+   - `NODE_VERSION`: `22` (Render supports Node 22+)
+6. Click **Create Web Service**. Render will build and launch your live site with an `https://...onrender.com` URL!
+
+---
+
 © Smart Canteen · Aurix Nexus
+
